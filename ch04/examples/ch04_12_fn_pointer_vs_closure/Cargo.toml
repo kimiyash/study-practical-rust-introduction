@@ -1,0 +1,6 @@
+[package]
+name = "ch04_12_fn_pointer_vs_closure"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
