@@ -34,8 +34,7 @@ where
 {
     if x.len() > 1 {
         let mid_point = x.len() / 2;
-        let first = &mut x[..mid_point];
-        let second = &mut x[mid_point..];
+        let (first, second) = x.split_at_mut(mid_point);
         if mid_point >= PARALLEL_THRESHOLD {
             rayon::join(
                 || do_sort(first, true, comparetor),
