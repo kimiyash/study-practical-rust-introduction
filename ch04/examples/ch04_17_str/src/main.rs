@@ -45,4 +45,15 @@ fn main() {
     } else {
         unreachable!();
     }
+
+    let s1 = "a";
+    let s2 = "あ";
+    let s3 = "😀";
+    let s4 = "🇯🇵";
+
+    // len() メソッドはUTF-8のバイト数を返す
+    assert_eq!(s1.len(), 1);
+    assert_eq!(s2.len(), 3);
+    assert_eq!(s3.len(), 4);
+    assert_eq!(s4.len(), 8);
 }
