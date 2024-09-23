@@ -76,4 +76,14 @@ fn main() {
     assert!(result2.is_err());
     println!("{:?}", result2);
 
+    let mut s1 = "abcあいう".to_string();
+    let s2 = s1.as_mut_str();
+    s2.make_ascii_uppercase();
+    assert_eq!(s2, "ABCあいう");
+    let b = unsafe { s2.as_bytes_mut() };
+    b[3] = b'*';
+    b[4] = b'a';
+    b[5] = b'*';
+    assert_eq!(s1, "ABC*a*いう");
+
 }
