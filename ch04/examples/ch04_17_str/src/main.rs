@@ -56,4 +56,20 @@ fn main() {
     assert_eq!(s2.len(), 3);
     assert_eq!(s3.len(), 4);
     assert_eq!(s4.len(), 8);
+
+    let s = "abcあいう";
+    assert_eq!(s.get(0..1), Some("a"));
+    assert_eq!(s.get(3..6), Some("あ"));
+    assert_eq!(s.get(3..4), None); // UTF-8 として解釈できない場合
+
+    let s = "かか\u{3099}く"; // \u{3099} は濁点文字
+    println!("{}", s);
+
+    let mut iter = s.chars();
+    assert_eq!(iter.next(), Some('か'));
+    assert_eq!(iter.next(), Some('か'));
+    assert_eq!(iter.next(), Some('\u{3099}'));
+    assert_eq!(iter.next(), Some('く'));
+    assert_eq!(iter.next(), None);
+
 }
