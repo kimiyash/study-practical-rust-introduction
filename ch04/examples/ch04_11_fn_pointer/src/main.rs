@@ -13,4 +13,12 @@ fn main() {
     assert_eq!(f(-42), 42);
 
     assert_eq!(std::mem::size_of_val(&f), std::mem::size_of::<usize>());
+
+    // let mut f_bad = double;
+    // f_bad = abs;
+
+    let f_bad = double;
+    assert_eq!(std::mem::size_of_val(&f_bad), 0);
+
+    // let f_bad: fn(i32) -> i32 {double} = double;
 }
