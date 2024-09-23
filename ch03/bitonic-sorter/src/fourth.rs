@@ -1,10 +1,11 @@
-use std::cmp::Ordering;
-
 use super::SortOrder;
+use rayon;
+use std::cmp::Ordering;
 
 pub fn sort_by<T, F>(x: &mut [T], comparator: &F) -> Result<(), String>
 where
-    F: Fn(&T, &T) -> Ordering,
+    T: Send,
+    F: Sync + Fn(&T, &T) -> Ordering,
 {
     if x.len().is_power_of_two() {
         do_sort(x, true, comparator);
@@ -17,21 +18,32 @@ where
     }
 }
 
-pub fn sort<T: Ord>(x: &mut [T], order: &SortOrder) -> Result<(), String> {
+pub fn sort<T: Ord + Send>(x: &mut [T], order: &SortOrder) -> Result<(), String> {
     match *order {
         SortOrder::Ascending => sort_by(x, &|a, b| a.cmp(b)),
         SortOrder::Descending => sort_by(x, &|a, b| b.cmp(a)),
     }
 }
 
+const PARALLEL_THRESHOLD: usize = 4096;
+
 fn do_sort<T, F>(x: &mut [T], forward: bool, comparetor: &F)
 where
-    F: Fn(&T, &T) -> Ordering,
+    T: Send,
+    F: Sync + Fn(&T, &T) -> Ordering,
 {
     if x.len() > 1 {
         let mid_point = x.len() / 2;
-        do_sort(&mut x[..mid_point], true, comparetor);
-        do_sort(&mut x[mid_point..], false, comparetor);
+        let (first, second) = x.split_at_mut(mid_point);
+        if mid_point >= PARALLEL_THRESHOLD {
+            rayon::join(
+                || do_sort(first, true, comparetor),
+                || do_sort(second, false, comparetor),
+            );
+        } else {
+            do_sort(&mut x[..mid_point], true, comparetor);
+            do_sort(&mut x[mid_point..], false, comparetor);
+        }
         sub_sort(x, forward, comparetor);
     }
 }
