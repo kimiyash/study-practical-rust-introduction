@@ -71,7 +71,7 @@ mod tests {
     use super::sort_by;
     use crate::SortOrder::*;
 
-    #[derive(Debug)]
+    #[derive(Debug, PartialEq)]
     struct Student {
         first_name: String,
         last_name: String,
@@ -88,13 +88,13 @@ mod tests {
         }
     }
 
-    impl PartialEq for Student {
-        fn eq(&self, other: &Self) -> bool {
-            self.first_name == other.first_name
-                && self.last_name == other.last_name
-                && self.age == other.age
-        }
-    }
+    // impl PartialEq for Student {
+    //     fn eq(&self, other: &Self) -> bool {
+    //         self.first_name == other.first_name
+    //             && self.last_name == other.last_name
+    //             && self.age == other.age
+    //     }
+    // }
 
     #[test]
     fn sort_students_by_age_ascending() {
@@ -118,7 +118,7 @@ mod tests {
         let expected = vec![&ryosuke, &kyoko, &hanako, &taro];
         assert_eq!(
             sort_by(&mut x, &|a, b| a
-                .last_name  
+                .last_name
                 .cmp(&b.last_name)
                 .then_with(|| a.first_name.cmp(&b.first_name))),
             Ok(())

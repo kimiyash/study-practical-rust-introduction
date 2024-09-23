@@ -8,7 +8,10 @@ pub fn sort<T: Ord>(x: &mut [T], order: &SortOrder) -> Result<(), String> {
         }
         Ok(())
     } else {
-        Err(format!("The length of x is not a power of two. (x.len(): {}", x.len()))
+        Err(format!(
+            "The length of x is not a power of two. (x.len(): {}",
+            x.len()
+        ))
     }
 }
 
@@ -60,16 +63,58 @@ mod tests {
 
     #[test]
     fn sort_str_acending() {
-        let mut x = vec!["Rust", "is", "fast", "and", "memory efficient", "with", "no", "GC"];
+        let mut x = vec![
+            "Rust",
+            "is",
+            "fast",
+            "and",
+            "memory efficient",
+            "with",
+            "no",
+            "GC",
+        ];
         assert_eq!(sort(&mut x, &Ascending), Ok(()));
-        assert_eq!(x, vec!["GC", "Rust", "and", "fast", "is", "memory efficient", "no", "with"]);
+        assert_eq!(
+            x,
+            vec![
+                "GC",
+                "Rust",
+                "and",
+                "fast",
+                "is",
+                "memory efficient",
+                "no",
+                "with"
+            ]
+        );
     }
 
     #[test]
     fn sort_str_descending() {
-        let mut x = vec!["Rust", "is", "fast", "and", "memory efficient", "with", "no", "GC"];
+        let mut x = vec![
+            "Rust",
+            "is",
+            "fast",
+            "and",
+            "memory efficient",
+            "with",
+            "no",
+            "GC",
+        ];
         assert_eq!(sort(&mut x, &Descending), Ok(()));
-        assert_eq!(x, vec!["with", "no", "memory efficient", "is", "fast", "and", "Rust", "GC"]);
+        assert_eq!(
+            x,
+            vec![
+                "with",
+                "no",
+                "memory efficient",
+                "is",
+                "fast",
+                "and",
+                "Rust",
+                "GC"
+            ]
+        );
     }
 
     #[test]
