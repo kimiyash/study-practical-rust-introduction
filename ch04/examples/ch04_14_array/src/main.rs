@@ -65,5 +65,4 @@ fn main() {
     for n in array5.iter_mut() {
         *n *= 2;
     }
-
 }

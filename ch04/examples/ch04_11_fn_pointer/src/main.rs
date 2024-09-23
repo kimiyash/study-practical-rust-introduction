@@ -23,5 +23,5 @@ fn main() {
     // let f_bad: fn(i32) -> i32 {double} = double: // こういう書き方はできない
 
     let f_bad = double;
-    assert_eq!(std::mem::size_of_val(&f_bad), 0);  // 不思議、コンパイラはそれぞれの関数の位置が自明だから、とのことらしい
+    assert_eq!(std::mem::size_of_val(&f_bad), 0); // 不思議、コンパイラはそれぞれの関数の位置が自明だから、とのことらしい
 }
