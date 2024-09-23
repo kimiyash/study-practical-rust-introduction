@@ -18,11 +18,10 @@ fn main() {
 
     assert_eq!(std::mem::size_of_val(&f), std::mem::size_of::<usize>());
 
-    // let mut f_bad = double;
-    // f_bad = abs;
+    // let mut f_bad = double; // fn(i32) -> i32 {double} の型になる
+    // f_bad = abs; // 関数は厳密には別の型になっているためコンパイルエラー
+    // let f_bad: fn(i32) -> i32 {double} = double: // こういう書き方はできない
 
     let f_bad = double;
-    assert_eq!(std::mem::size_of_val(&f_bad), 0);
-
-    // let f_bad: fn(i32) -> i32 {double} = double;
+    assert_eq!(std::mem::size_of_val(&f_bad), 0);  // 不思議、コンパイラはそれぞれの関数の位置が自明だから、とのことらしい
 }
