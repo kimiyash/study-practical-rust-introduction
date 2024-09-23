@@ -41,8 +41,8 @@ where
                 || do_sort(second, false, comparetor),
             );
         } else {
-            do_sort(&mut x[..mid_point], true, comparetor);
-            do_sort(&mut x[mid_point..], false, comparetor);
+            do_sort(first, true, comparetor);
+            do_sort(second, false, comparetor);
         }
         sub_sort(x, forward, comparetor);
     }
@@ -50,13 +50,21 @@ where
 
 fn sub_sort<T, F>(x: &mut [T], fowrard: bool, comparator: &F)
 where
-    F: Fn(&T, &T) -> Ordering,
+    T: Send,
+    F: Sync + Fn(&T, &T) -> Ordering,
 {
     if x.len() > 1 {
         compare_and_swap(x, fowrard, comparator);
         let mid_point = x.len() / 2;
-        sub_sort(&mut x[..mid_point], fowrard, comparator);
-        sub_sort(&mut x[mid_point..], fowrard, comparator);
+        let (first, second) = x.split_at_mut(mid_point);
+        if mid_point >= PARALLEL_THRESHOLD {
+            rayon::join(
+                || sub_sort(first, fowrard, comparator),
+                || sub_sort(second, fowrard, comparator),
+            );
+        }
+        sub_sort(first, fowrard, comparator);
+        sub_sort(second, fowrard, comparator);
     }
 }
 
