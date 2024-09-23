@@ -20,7 +20,7 @@ fn main() {
     let mut f: fn(i32) -> i32 = |n| n * 3;
     assert_eq!(f(-42), -126);
 
-    let  x = 4;
+    let x = 4;
     // f = |n| n * x; // コンパイルエラー、変数をキャプチャするクロージャは関数ポインタ型になれない
 
     let v = vec!["I", "love", "Rust"]

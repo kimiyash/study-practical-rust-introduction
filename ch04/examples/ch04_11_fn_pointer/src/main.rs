@@ -3,7 +3,11 @@ fn double(n: i32) -> i32 {
 }
 
 fn abs(n: i32) -> i32 {
-    if n >= 0 { n } else { -n }
+    if n >= 0 {
+        n
+    } else {
+        -n
+    }
 }
 
 fn main() {
