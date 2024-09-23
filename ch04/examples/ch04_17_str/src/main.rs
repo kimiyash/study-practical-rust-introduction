@@ -30,7 +30,6 @@ fn main() {
     assert_eq!(apple_line, Some("あかりんご、　 あおりんご"));
     assert_eq!(lines.next(), Some("ラズベリー、　 ブラックベリー"));
     assert_eq!(lines.next(), None);
-
     if let Some(apples) = apple_line {
         assert!(apples.starts_with("あか"));
         assert!(apples.contains("りんご"));
@@ -50,7 +49,6 @@ fn main() {
     let s2 = "あ";
     let s3 = "😀";
     let s4 = "🇯🇵";
-
     // len() メソッドはUTF-8のバイト数を返す
     assert_eq!(s1.len(), 1);
     assert_eq!(s2.len(), 3);
@@ -64,12 +62,18 @@ fn main() {
 
     let s = "かか\u{3099}く"; // \u{3099} は濁点文字
     println!("{}", s);
-
     let mut iter = s.chars();
     assert_eq!(iter.next(), Some('か'));
     assert_eq!(iter.next(), Some('か'));
     assert_eq!(iter.next(), Some('\u{3099}'));
     assert_eq!(iter.next(), Some('く'));
     assert_eq!(iter.next(), None);
+
+    let utf8: [u8; 4] = [0x61, 0xe3, 0x81, 0x82];
+    assert_eq!(std::str::from_utf8(&utf8), Ok("aあ"));
+    let bad_utf8: [u8; 2] = [0x81, 0x33];
+    let result2 = std::str::from_utf8(&bad_utf8);
+    assert!(result2.is_err());
+    println!("{:?}", result2);
 
 }
