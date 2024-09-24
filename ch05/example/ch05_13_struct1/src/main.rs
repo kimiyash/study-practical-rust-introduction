@@ -39,6 +39,7 @@ fn main() {
     let Polygon { stroke_width, .. } = quardrangle;
     assert_eq!(stroke_width, 1);
 
+    // 構造体の値を変更するには mut が必要
     let mut polygon = new_polygon(vec![(-1, -5), (-4, 0)]);
     assert_eq!(polygon.vertexes.len(), 2);
     polygon.vertexes.push((2, 8));
