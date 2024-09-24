@@ -44,4 +44,18 @@ fn main() {
     assert_eq!(polygon.vertexes.len(), 2);
     polygon.vertexes.push((2, 8));
     assert_eq!(polygon.vertexes.len(), 3);
+
+    // すでにある値を下にして、その一部を使った新しい値をつくる
+    let triangle1 = Polygon {
+        vertexes: vec![(0, 0), (3, 0), (2, 2)],
+        fill: (255, 255, 255),
+        stroke_width: 5,
+    };
+    let triangle2 = Polygon {
+        vertexes: vec![(0, 0), (-3, 0), (-2, 2)],
+        .. triangle1
+    };
+    assert_ne!(triangle1.vertexes, triangle2.vertexes);
+    assert_eq!(triangle1.fill, triangle2.fill);
+    assert_eq!(triangle1.stroke_width, triangle2.stroke_width);
 }
