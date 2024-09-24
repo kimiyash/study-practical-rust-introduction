@@ -1,7 +1,18 @@
+#[derive(Debug)]
 struct Polygon {
     vertexes: Vec<(i32, i32)>,
     stroke_width: u8,
     fill: (u8, u8, u8),
+}
+
+impl Default for Polygon {
+    fn default() -> Self {
+        Self {
+            stroke_width: 1,
+            vertexes: Default::default(),
+            fill: Default::default(),
+        }
+    }
 }
 
 fn new_polygon(vertexes: Vec<(i32, i32)>) -> Polygon {
@@ -58,4 +69,15 @@ fn main() {
     assert_ne!(triangle1.vertexes, triangle2.vertexes);
     assert_eq!(triangle1.fill, triangle2.fill);
     assert_eq!(triangle1.stroke_width, triangle2.stroke_width);
+
+    // #[derive(Default)] でデフォルト値をもたせることができる
+    // すべてのフィールドがデフォルト値を持つ
+    let polygon1: Polygon = Default::default();
+    println!("{:?}", polygon1);
+    // vertexesフィールドだけ別の値に設定し、ほかはデフォルトにする
+    let polygon2 = Polygon {
+        vertexes: vec![(0, 0), (3, 0), (2, 2)],
+        .. Default::default()
+    };
+    println!("{:?}", polygon2);
 }
