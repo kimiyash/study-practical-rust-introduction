@@ -9,4 +9,5 @@ fn main() {
     // push_strが受け付けるのは &str のみだが & をつけると型強制という仕組みで &String から &str へ変換される
     s2.push_str(&s3);
     assert_eq!(s2, "ブラックベリーとストロベリー");
+    println!("{}", s3);
 }
