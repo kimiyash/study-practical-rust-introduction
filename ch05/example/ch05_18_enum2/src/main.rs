@@ -19,6 +19,23 @@ enum Status {
     Pending,
 }
 
+mod shape {
+    #[derive(Default)]
+    pub struct Polygon {
+        pub vertexes: Vec<(i32, i32)>,
+        pub stroke_width: u8,
+        pub fill: (u8, u8, u8),
+        internal_id: String,
+    }
+}
+
+use shape::Polygon;
+
+struct  StrRefs<'a> {
+    s1: &'a str,
+    s2: &'a str,
+}
+
 fn main() {
     let tasks = [
         AssignedTo(String::from("junko")),
