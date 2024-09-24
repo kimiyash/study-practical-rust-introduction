@@ -28,4 +28,19 @@ fn main() {
     ];
     let s = String::from_utf8_lossy(&bad_utf8);
     assert_eq!(s, "a\u{fffd}あ");
+
+    let utf16: Vec<u16> = vec![0x61, 0x62, 0x6f22, 0x5b57]; // UTF16 で ab漢字
+    if let Ok(s) = String::from_utf16(&utf16) {
+        assert_eq!(s, "ab漢字");
+    } else {
+        unreachable!();
+    }
+
+    // バイト文字列リテラル ASCII 以外の文字のバイトは「\x２桁の16進数」で記述する
+    let bs1 = b"abc\xe3\x81\x82"; // UTF-8で "abcあ"
+    assert_eq!(bs1, &[b'a', b'b', b'c', 0xe3, 0x81, 0x82]);
+    // rawバイト文字列リテラル。エスケープ文字の \ を特別扱いしない。 \n は改行文字でなく \n と解釈される
+    let bs2 = br#"ab\ncd"#;
+    assert_eq!(bs2, &[b'a', b'b', b'\\', b'n', b'c', b'd']);
+    assert_eq!(bs2, b"ab\\ncd");
 }
