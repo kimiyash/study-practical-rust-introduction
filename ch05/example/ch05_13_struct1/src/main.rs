@@ -64,7 +64,7 @@ fn main() {
     };
     let triangle2 = Polygon {
         vertexes: vec![(0, 0), (-3, 0), (-2, 2)],
-        .. triangle1
+        ..triangle1
     };
     assert_ne!(triangle1.vertexes, triangle2.vertexes);
     assert_eq!(triangle1.fill, triangle2.fill);
@@ -77,7 +77,7 @@ fn main() {
     // vertexesフィールドだけ別の値に設定し、ほかはデフォルトにする
     let polygon2 = Polygon {
         vertexes: vec![(0, 0), (3, 0), (2, 2)],
-        .. Default::default()
+        ..Default::default()
     };
     println!("{:?}", polygon2);
 }
