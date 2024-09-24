@@ -31,7 +31,7 @@ mod shape {
 
 use shape::Polygon;
 
-struct  StrRefs<'a> {
+struct StrRefs<'a> {
     s1: &'a str,
     s2: &'a str,
 }

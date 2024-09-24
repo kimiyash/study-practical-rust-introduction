@@ -1,0 +1,6 @@
+[package]
+name = "ch05_25_type_coercion1"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
