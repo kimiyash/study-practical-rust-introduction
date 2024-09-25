@@ -16,16 +16,18 @@ impl Drop for Child {
     }
 }
 
-fn f1(p: Parent) {
-    println!("p1: {:?}", p);
+fn f1(p: &Parent) {
+    println!("p {:?}", p)
+}
+
+fn f2(p: &mut Parent) {
+    p.0 += 1;
 }
 
 fn main() {
     let mut p1 = Parent(1, Child(11), Child(12));
-    f1(p1);
-    // println!("p1: {:?}", p1); // エラー
-    //  25 |     f1(p1);
-    //     |        -- value moved here
-    //  26 |     println!("p1: {:?}", p1); // エラー
-    //     |                          ^^ value borrowed here after move
+    f1(&p1);
+    f2(&mut p1);
+    println!("p1: {:?}", p1);
+    
 }
