@@ -15,4 +15,6 @@ fn main() {
     v.push("uhi".to_string());
     v.push("piyo".to_string());
     println!("{:?}", v);
+    println!("{}", v.get_or(0, &"default".to_string()));
+    println!("{}", v.get_or(100, &"default".to_string()));
 }
