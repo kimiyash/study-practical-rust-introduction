@@ -29,5 +29,4 @@ fn main() {
     f1(&p1);
     f2(&mut p1);
     println!("p1: {:?}", p1);
-    
 }

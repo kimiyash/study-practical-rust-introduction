@@ -1,0 +1,6 @@
+[package]
+name = "ch07_04_static_lifetime"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
