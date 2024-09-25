@@ -57,6 +57,21 @@ impl<T: Default> ToyVec<T> {
         }
     }
 
+    pub fn get_or<'a, 'b>(&'a self, index: usize, default: &'b T) -> &'a T
+        where
+            'b: 'a // 'bは'aより長生きする
+    {
+        self.get(index).unwrap_or(default)
+    }
+
+    // pub fn get_or<'a>(&'a self, index: usize, default: &'a T) -> &'a T {
+    //     self.get(index).unwrap_or(default)
+    //     // match self.get(index) {
+    //     //     Some(v) => v,
+    //     //     None => default,
+    //     // }
+    // }
+
     pub fn pop(&mut self) -> Option<T> {
         if self.len == 0 {
             None
