@@ -94,10 +94,18 @@ impl<T: Default> ToyVec<T> {
             // self.elements を置き換える
             let old_elements = std::mem::replace(&mut self.elements, new_elements);
             // 既存の全要素を新しい領域へムーブする
-            // Vec<T> の into_iter(self) なら要素の所有権が得られる
+            // Vec<T> の into_iter(self) なら各要素の所有権が得られる
+            // into_vec も into_iter も レシーバーの所有権を奪う
+            // レシーバの所有権を奪うことで各エレメントの所有権を得ることができる。みたい。
             for (i, elem) in old_elements.into_vec().into_iter().enumerate() {
                 self.elements[i] = elem;
             }
+            // let _ = old_elements[0]; // 所有権を奪われているので、これがエラーになる
+
+            // // 下記だと *elem の Copy トレイトが要求されてコンパイルエラーになる
+            // for (i, elem) in old_elements.iter().enumerate() {
+            //     self.elements[i] = *elem;
+            // }
         }
     }
 }
