@@ -4,9 +4,50 @@ pub struct ToyVec<T> {
     len: usize,
 }
 
+pub struct Iter<'vec, T> {
+    elements: &'vec Box<[T]>,
+    len: usize,
+    pos: usize,
+}
+
+impl<'vec, T> Iterator for Iter<'vec ,T> {
+    type Item = &'vec T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.pos >= self.len {
+            None
+        } else {
+            let res = Some(&self.elements[self.pos]);
+            self.pos += 1;
+            res
+        }
+    }
+}
+
+impl<'vec, T: Default> IntoIterator for &'vec ToyVec<T> {
+    type Item = &'vec T; // イテレータがイテレートする値の型
+    type IntoIter = Iter<'vec, T>; // into_iterメソッドの戻り値の型
+
+    // &ToyVec<T>に対するトレイト実装なので、selfの型は ToyVec<T> ではなく &ToyVec<T>
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
 impl<T: Default> Default for ToyVec<T> {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+impl<T: Clone + Default> Clone for ToyVec<T> {
+    fn clone(&self) -> Self {
+        let mut cloned = Self::with_capacity(self.len());
+        // 各要素のcloneを呼ぶことでdeepコピーを実現する
+        for elem in self.iter() {
+            cloned.push(elem.clone());
+        }
+        cloned
     }
 }
 
@@ -113,6 +154,14 @@ impl<T: Default> ToyVec<T> {
             //     self.elements[i] = *elem;
             // }
 
+        }
+    }
+
+    pub fn iter<'vec>(&'vec self) -> Iter<'vec, T> {
+        Iter {
+            elements: &self.elements,
+            len: self.len,
+            pos: 0,
         }
     }
 }
