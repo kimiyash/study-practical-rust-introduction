@@ -97,6 +97,7 @@ impl<T: Default> ToyVec<T> {
             // Vec<T> の into_iter(self) なら各要素の所有権が得られる
             // into_vec も into_iter も レシーバーの所有権を奪う
             // レシーバの所有権を奪うことで各エレメントの所有権を得ることができる。みたい。
+            // into_vec で参照じゃなく実態にしてから into_iteer で各所有権得ているのかな
             for (i, elem) in old_elements.into_vec().into_iter().enumerate() {
                 self.elements[i] = elem;
             }
@@ -106,6 +107,12 @@ impl<T: Default> ToyVec<T> {
             // for (i, elem) in old_elements.iter().enumerate() {
             //     self.elements[i] = *elem;
             // }
+
+            // // 下記でも一緒
+            // for (i, elem) in old_elements.into_iter().enumerate() {
+            //     self.elements[i] = *elem;
+            // }
+
         }
     }
 }
