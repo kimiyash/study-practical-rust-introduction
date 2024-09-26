@@ -43,7 +43,8 @@ fn main() {
     let clone_v = v.clone();
 
     println!();
-    for msg in clone_v.into_iter() {
+    for mut msg in clone_v.into_iter() {
+        msg.push_str("-test2");
         println!("{:?}", msg);
     }
     // println!("{:?}", clone_v); // エラー clone_v.into_iter で消費済み
