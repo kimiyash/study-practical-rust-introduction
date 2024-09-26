@@ -1,3 +1,5 @@
+use std::f64::consts::PI;
+
 #[derive(Debug, Clone)]
 struct CartesianCoord {
     x: f64,
@@ -88,6 +90,46 @@ where
     i.convert()
 }
 
+struct Matrix([[f64; 2]; 2]);
+trait LinearTrasform: Coordinates {
+    fn transform(self, matrix: &Matrix) -> Self
+    where
+        Self: Sized,
+    {
+        let mut cart = self.to_cartesian();
+        let x = cart.x;
+        let y = cart.y;
+        let m = matrix.0;
+
+        cart.x = m[0][0] * x + m[0][1] * y;
+        cart.y = m[1][0] * x + m[1][1] * y;
+        Self::from_cartesian(cart)
+    }
+
+    fn rotate(self, theta: f64) -> Self
+    where
+        Self: Sized,
+    {
+        self.transform(&Matrix([
+            [theta.cos(), -theta.sin()],
+            [theta.sin(), theta.cos()],
+        ]))
+    }
+
+    fn rotate_matrix(theta: f64) -> Matrix {
+        Matrix([[theta.cos(), -theta.sin()], [theta.sin(), theta.cos()]])
+    }
+}
+
+impl LinearTrasform for CartesianCoord {}
+
+impl LinearTrasform for PolarCoord {
+    fn rotate(mut self, theta: f64) -> Self {
+        self.theta += theta;
+        self
+    }
+}
+
 fn main() {
     let point = (1.0, 1.0);
 
@@ -104,6 +146,24 @@ fn main() {
     });
 
     let d = as_cartesian(&p);
-    let d = double_point(d);
+    let _d = double_point(d);
     let _ = make_point(1.0, 2.0);
+
+    let xy = (2.0_f64.sqrt() / 2.0, 2.0_f64.sqrt() / 2.0);
+    let c = xy.to_cartesian();
+    let c = c.rotate(PI / 4.0);
+    println!("{:?}", c);
+    let c = c.rotate(-PI / 2.0);
+    println!("{:?}", c);
+    let c = c.rotate(PI / 4.0);
+    println!("{:?}", c);
+
+    let r = PolarCoord::from_cartesian(xy.to_cartesian());
+    println!("{:?}", r);
+    let r = r.transform(&CartesianCoord::rotate_matrix(PI / 4.0));
+    println!("{:?}", r);
+    let r = r.transform(&CartesianCoord::rotate_matrix(-PI / 2.0));
+    println!("{:?}", r);
+    let r = r.transform(&CartesianCoord::rotate_matrix(PI / 4.0));
+    println!("{:?}", r);
 }
