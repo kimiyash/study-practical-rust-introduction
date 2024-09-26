@@ -4,53 +4,6 @@ pub struct ToyVec<T> {
     len: usize,
 }
 
-pub struct Iter<'vec, T> {
-    elements: &'vec Box<[T]>,
-    len: usize,
-    pos: usize,
-}
-
-impl<'vec, T> Iterator for Iter<'vec ,T> {
-    type Item = &'vec T;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.pos >= self.len {
-            None
-        } else {
-            let res = Some(&self.elements[self.pos]);
-            self.pos += 1;
-            res
-        }
-    }
-}
-
-impl<'vec, T: Default> IntoIterator for &'vec ToyVec<T> {
-    type Item = &'vec T; // イテレータがイテレートする値の型
-    type IntoIter = Iter<'vec, T>; // into_iterメソッドの戻り値の型
-
-    // &ToyVec<T>に対するトレイト実装なので、selfの型は ToyVec<T> ではなく &ToyVec<T>
-    fn into_iter(self) -> Self::IntoIter {
-        self.iter()
-    }
-}
-
-impl<T: Default> Default for ToyVec<T> {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl<T: Clone + Default> Clone for ToyVec<T> {
-    fn clone(&self) -> Self {
-        let mut cloned = Self::with_capacity(self.len());
-        // 各要素のcloneを呼ぶことでdeepコピーを実現する
-        for elem in self.iter() {
-            cloned.push(elem.clone());
-        }
-        cloned
-    }
-}
-
 impl<T: Default> ToyVec<T> {
     pub fn new() -> Self {
         Self::with_capacity(0)
@@ -99,8 +52,8 @@ impl<T: Default> ToyVec<T> {
     }
 
     pub fn get_or<'a, 'b>(&'a self, index: usize, default: &'b T) -> &'a T
-        where
-            'b: 'a // 'bは'aより長生きする
+    where
+        'b: 'a, // 'bは'aより長生きする
     {
         self.get(index).unwrap_or(default)
     }
@@ -153,15 +106,156 @@ impl<T: Default> ToyVec<T> {
             // for (i, elem) in old_elements.into_iter().enumerate() {
             //     self.elements[i] = *elem;
             // }
-
         }
     }
 
+    // 要素へのイミュータブルな参照（Option<&T>）を返すイテレータを作る
+    // 説明のためにライフタイムを明示しているが、実際には省略できる
     pub fn iter<'vec>(&'vec self) -> Iter<'vec, T> {
         Iter {
             elements: &self.elements,
             len: self.len,
             pos: 0,
         }
+    }
+
+    // 要素へのイミュータブルな参照（Option<&mut T>）を返すイテレータを作る
+    pub fn iter_mut<'vec>(&'vec mut self) -> IterMut<'vec, T> {
+        IterMut {
+            elements: &mut self.elements,
+            len: self.len,
+            pos: 0,
+        }
+    }
+
+    // 要素の所有権をとる（Option<T>）イテレータを作る
+    pub fn into_iter(self) -> IntoIter<T> {
+        IntoIter {
+            elements: self.elements,
+            len: self.len,
+            pos: 0,
+        }
+    }
+}
+
+pub struct Iter<'vec, T> {
+    elements: &'vec Box<[T]>,
+    len: usize,
+    pos: usize,
+}
+
+impl<'vec, T> Iterator for Iter<'vec, T> {
+    type Item = &'vec T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.pos >= self.len {
+            None
+        } else {
+            let res = Some(&self.elements[self.pos]);
+            self.pos += 1;
+            res
+        }
+    }
+}
+
+impl<'vec, T: Default> IntoIterator for &'vec ToyVec<T> {
+    type Item = &'vec T; // イテレータがイテレートする値の型
+    type IntoIter = Iter<'vec, T>; // into_iterメソッドの戻り値の型
+
+    // &ToyVec<T>に対するトレイト実装なので、selfの型は ToyVec<T> ではなく &ToyVec<T>
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
+pub struct IterMut<'vec, T> {
+    elements: &'vec mut Box<[T]>,  // ミュータブルな参照
+    len: usize,
+    pos: usize,
+}
+
+impl<'vec, T> Iterator for IterMut<'vec, T> {
+    type Item = &'vec mut T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.pos >= self.len {
+            None
+        } else {
+            // 要素を&'vec mut Tとして返したいが、&'a mut selfから要素を取り出すと
+            // 要素が&'a mut Tになってしまい、ライフタイム要件が満たせない
+            // そこで以下のように対応した
+            //   1. &'a mut Tを生ポインタ*mut Tに変換してライフタイムをなくす
+            //   2. *mut Tの参照外しをして要素Tにアクセス
+            //   3. 要素Tから&'vec mut Tを得る
+            let elem = unsafe { &mut *(&mut self.elements[self.pos] as *mut T) };
+            self.pos += 1;
+            Some(elem)
+        }
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (self.len, Some(self.len))
+    }
+}
+
+impl<'vec, T: Default> IntoIterator for &'vec mut ToyVec<T> {
+    type Item = &'vec mut T;
+    type IntoIter = IterMut<'vec, T>;
+
+    // selfの型はToyVec<T>ではなく&mut ToyVec<T>
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter_mut()
+    }
+}
+
+pub struct IntoIter<T> {
+    elements: Box<[T]>,  // ミュータブルな参照
+    len: usize,
+    pos: usize,
+}
+
+impl<T: Default> Iterator for IntoIter<T> {
+    type Item = T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.pos >= self.len {
+            None
+        } else {
+            // &mut selfから要素Tをムーブアウトできないのでreplaceでデフォルト値と交換している
+            let elem = std::mem::take(&mut self.elements[self.pos]);
+            self.pos += 1;
+            Some(elem)
+        }
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (self.len, Some(self.len))
+    }
+}
+
+impl<T: Default> IntoIterator for ToyVec<T> {
+    type Item = T;
+    type IntoIter = IntoIter<T>;
+
+    // selfの型はToyVec<T>
+    fn into_iter(self) -> Self::IntoIter {
+        self.into_iter()
+    }
+}
+
+impl<T: Default> Default for ToyVec<T> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl<T: Clone + Default> Clone for ToyVec<T> {
+    fn clone(&self) -> Self {
+        let mut cloned = Self::with_capacity(self.len());
+        // 各要素のcloneを呼ぶことでdeepコピーを実現する
+        for elem in self.iter() {
+            cloned.push(elem.clone());
+        }
+        cloned
     }
 }

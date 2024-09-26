@@ -32,7 +32,20 @@ fn main() {
     v.push("test".to_string());
 
     println!();
-    for msg in &v {
+    for msg in v.iter() {
         println!("{:?}", msg);
     }
+
+    for msg in v.iter_mut() {
+        msg.push_str("-test");
+    }
+
+    let clone_v = v.clone();
+
+    println!();
+    for msg in clone_v.into_iter() {
+        println!("{:?}", msg);
+    }
+    // println!("{:?}", clone_v); // エラー clone_v.into_iter で消費済み
+    println!("{:?}", v);
 }
