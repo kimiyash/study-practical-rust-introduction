@@ -28,5 +28,4 @@ fn main() {
     }
     // rbs のスコープを抜けてるので利用可能
     assert!(b.s.try_borrow_mut().is_ok());
-
 }
