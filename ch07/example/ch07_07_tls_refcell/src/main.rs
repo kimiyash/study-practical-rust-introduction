@@ -14,14 +14,13 @@ fn main() {
         rb.borrow_mut().insert("ネザーランド・ドワーフ");
     });
 
-    std::thread::spawn(||
-        RABBITS.with(|rb| rb.borrow_mut().insert("ドワーフホト"))
-    ).join().expect("Thread error");
+    std::thread::spawn(|| RABBITS.with(|rb| rb.borrow_mut().insert("ドワーフホト")))
+        .join()
+        .expect("Thread error");
 
     RABBITS.with(|rb| {
         assert!(rb.borrow().contains("ネザーランド・ドワーフ"));
         // RABBITSはスレッド事に持つので、別スレッドで追加した要素はここにいない
         assert!(!rb.borrow().contains("ドワーフホト"));
     });
-
 }

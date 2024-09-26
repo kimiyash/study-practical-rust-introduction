@@ -1,0 +1,6 @@
+[package]
+name = "ch07_08_arc_rwrock"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]

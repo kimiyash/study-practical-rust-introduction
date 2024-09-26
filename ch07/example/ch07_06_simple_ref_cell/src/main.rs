@@ -11,11 +11,17 @@ struct B {
 }
 
 fn main() {
-    let a = A { c: 'a', s: "alex".to_string()};
+    let a = A {
+        c: 'a',
+        s: "alex".to_string(),
+    };
     let r = &a;
     // r.s.push('a'); // コンパルエラー
 
-    let b = B { c: 'a', s: RefCell::new("alex".to_string())};
+    let b = B {
+        c: 'a',
+        s: RefCell::new("alex".to_string()),
+    };
     let rb = &b;
     b.s.borrow_mut().push('a');
     {
