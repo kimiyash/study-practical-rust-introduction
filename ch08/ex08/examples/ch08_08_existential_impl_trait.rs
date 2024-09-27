@@ -51,7 +51,7 @@ fn one() -> impl fmt::Display {
 //         ret
 //     })
 // }
-// トレイトオブジェクトを使わなくするには下記の様に書く
+// トレイトオブジェクトだと動的ディスパッチが起こるので不満、もっとい良いのは下記の様に書く
 fn gen_counter(init: i32) -> impl FnMut() -> i32 {
     let mut n = init;
     move || {
