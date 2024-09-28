@@ -54,6 +54,7 @@ fn one() -> impl fmt::Display {
 // トレイトオブジェクトだと動的ディスパッチが起こるので不満、もっとい良いのは下記の様に書く
 fn gen_counter(init: i32) -> impl FnMut() -> i32 {
     let mut n = init;
+    // impl Trait のお陰でトレイトオブジェクトを作る必要がなくなった
     move || {
         let ret = n;
         n += 1;
