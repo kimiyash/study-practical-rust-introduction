@@ -349,6 +349,36 @@ fn parse_expr3<Tokens>(tokens: &mut Peekable<Tokens>) -> Result<Ast, ParseError>
 where
     Tokens: Iterator<Item = Token>,
 {
+    // let mut e = parse_expr2(tokens)?;
+    // // EXPR3_LOOP
+    // loop {
+    //     match tokens.peek().map(|tok|, tok.value) {
+    //         // ("+" | "-")
+    //         Some(TokenKind::Plus) | Some(TokenKind::Minus) => {
+    //             let op = match tokens.next().unwrap() {
+    //                 Token {
+    //                     value: TokenKind::Plus,
+    //                     loc,
+    //                 } => BinOp::add(loc),
+    //                 Token {
+    //                     value: TokenKind::Minus,
+    //                     loc,
+    //                 } => BinOp::sub(loc),
+    //                 _ => unreachable!(),
+    //             };
+    //             // EXPR2
+    //             let r = parse_expr2(tokens)?;
+    //             // 位置情報や AST 構築の処理
+    //             let loc = e.loc.merge(&r.loc);
+    //             e = Ast::binop(op, e, r, loc)
+    //             // 次のイテレーションは EXPR3_LOOP
+    //         }
+    //         // ε
+    //         _ => return Ok(e),
+    //     }
+    // }
+
+
     // 最初にEXPR3 ("+" | "-") EXPR2 を試す
     // まずは EXPR3 をパースし
     match parse_expr3(tokens) {
@@ -373,7 +403,7 @@ where
                             loc,
                         } => BinOp::sub(loc),
                         //入力が "+" か "-" であることは確認したのでそれ以外はありえない
-                        _ => unreachable!(,)
+                        _ => unreachable!()
                     };
                     // EXPR2 をパース
                     let r = parse_expr2(tokens)?;
