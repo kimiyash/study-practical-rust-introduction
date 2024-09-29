@@ -177,13 +177,14 @@ fn lex_slash(input: &[u8], start: usize) -> Result<(Token, usize), LexError> {
     consume_byte(input, start, b'/').map(|(_, end)| (Token::slash(Loc(start, end)), end))
 }
 
-fn lex_rparen(input: &[u8], start: usize) -> Result<(Token, usize), LexError> {
-    consume_byte(input, start, b'(').map(|(_, end)| (Token::rparen(Loc(start, end)), end))
+fn lex_lparen(input: &[u8], start: usize) -> Result<(Token, usize), LexError> {
+    consume_byte(input, start, b'(').map(|(_, end)| (Token::lparen(Loc(start, end)), end))
 }
 
-fn lex_lparen(input: &[u8], start: usize) -> Result<(Token, usize), LexError> {
-    consume_byte(input, start, b')').map(|(_, end)| (Token::lparen(Loc(start, end)), end))
+fn lex_rparen(input: &[u8], start: usize) -> Result<(Token, usize), LexError> {
+    consume_byte(input, start, b')').map(|(_, end)| (Token::rparen(Loc(start, end)), end))
 }
+
 
 fn lex_number(input: &[u8], pos: usize) -> Result<(Token, usize), LexError> {
     use std::str::from_utf8;
