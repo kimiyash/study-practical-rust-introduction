@@ -349,72 +349,101 @@ fn parse_expr3<Tokens>(tokens: &mut Peekable<Tokens>) -> Result<Ast, ParseError>
 where
     Tokens: Iterator<Item = Token>,
 {
-    // let mut e = parse_expr2(tokens)?;
-    // // EXPR3_LOOP
-    // loop {
-    //     match tokens.peek().map(|tok|, tok.value) {
-    //         // ("+" | "-")
-    //         Some(TokenKind::Plus) | Some(TokenKind::Minus) => {
-    //             let op = match tokens.next().unwrap() {
-    //                 Token {
-    //                     value: TokenKind::Plus,
-    //                     loc,
-    //                 } => BinOp::add(loc),
-    //                 Token {
-    //                     value: TokenKind::Minus,
-    //                     loc,
-    //                 } => BinOp::sub(loc),
-    //                 _ => unreachable!(),
-    //             };
-    //             // EXPR2
-    //             let r = parse_expr2(tokens)?;
-    //             // 位置情報や AST 構築の処理
-    //             let loc = e.loc.merge(&r.loc);
-    //             e = Ast::binop(op, e, r, loc)
-    //             // 次のイテレーションは EXPR3_LOOP
+    // 左側の EXPR2 を得る
+    let mut e = parse_expr2(tokens)?;
+    // EXPR3_LOOP
+    loop {
+        match tokens.peek().map(|tok| tok.value) {
+            // ("+" | "-")
+            Some(TokenKind::Plus) | Some(TokenKind::Minus) => {
+                // op を取得する
+                let op = match tokens.next().unwrap() {
+                    Token {
+                        value: TokenKind::Plus,
+                        loc,
+                    } => BinOp::add(loc),
+                    Token {
+                        value: TokenKind::Minus,
+                        loc,
+                    } => BinOp::sub(loc),
+                    _ => unreachable!(),
+                };
+                // 右側の EXPR2 を得る
+                let r = parse_expr2(tokens)?;
+                // 位置情報や AST 構築の処理
+                let loc = e.loc.merge(&r.loc); // e と r の位置をマージ（拡大）
+                e = Ast::binop(op, e, r, loc)
+                // 次のイテレーションは EXPR3_LOOP
+            }
+            // ε
+            _ => return Ok(e),
+        }
+    }
+
+    // // 最初にEXPR3 ("+" | "-") EXPR2 を試す
+    // // まずは EXPR3 をパースし
+    // match parse_expr3(tokens) {
+    //     // 失敗したら parse_expr2 にフォールバック ( | EXPR2 の部分)
+    //     Err(_) => parse_expr2(tokens),
+    //     // 成功したら
+    //     Ok(e) => {
+    //         // peek で先読みして
+    //         match tokens.peek().map(|tok| tok.value) {
+    //             // ("+" | "-") であることを確認する | を使ってパターンマッチを複数並べられる
+    //             Some(TokenKind::Plus) | Some(TokenKind::Minus) => {
+    //                 // ("+" | "-" ) であれば入力を消費してパースを始める
+    //                 let op = match tokens.next().unwrap() {
+    //                     // Token は型エイリアスだがパターンマッチにも使える
+    //                     Token {
+    //                         // パターンマッチはネスト可能
+    //                         value: TokenKind::Plus,
+    //                         loc,
+    //                     } => BinOp::add(loc),
+    //                     Token {
+    //                         value: TokenKind::Minus,
+    //                         loc,
+    //                     } => BinOp::sub(loc),
+    //                     //入力が "+" か "-" であることは確認したのでそれ以外はありえない
+    //                     _ => unreachable!()
+    //                 };
+    //                 // EXPR2 をパース
+    //                 let r = parse_expr2(tokens)?;
+    //                 // 結果は加減
+    //                 let loc = e.loc.merge(&r.loc);
+    //                 Ok(Ast::binop(op, e, r, loc))
+    //             }
+    //             // それ以外はエラー。エラーの種類で処理をわける
+    //             Some(_) => Err(ParseError::UnexpectedToken(tokens.next().unwrap())),
+    //             None => Err(ParseError::Eof),
     //         }
-    //         // ε
-    //         _ => return Ok(e),
     //     }
     // }
+}
 
-
-    // 最初にEXPR3 ("+" | "-") EXPR2 を試す
-    // まずは EXPR3 をパースし
-    match parse_expr3(tokens) {
-        // 失敗したら parse_expr2 にフォールバック ( | EXPR2 の部分)
-        Err(_) => parse_expr2(tokens),
-        // 成功したら
-        Ok(e) => {
-            // peek で先読みして
-            match tokens.peek().map(|tok| tok.value) {
-                // ("+" | "-") であることを確認する | を使ってパターンマッチを複数並べられる
-                Some(TokenKind::Plus) | Some(TokenKind::Minus) => {
-                    // ("+" | "-" ) であれば入力を消費してパースを始める
-                    let op = match tokens.next().unwrap() {
-                        // Token は型エイリアスだがパターンマッチにも使える
-                        Token {
-                            // パターンマッチはネスト可能
-                            value: TokenKind::Plus,
-                            loc,
-                        } => BinOp::add(loc),
-                        Token {
-                            value: TokenKind::Minus,
-                            loc,
-                        } => BinOp::sub(loc),
-                        //入力が "+" か "-" であることは確認したのでそれ以外はありえない
-                        _ => unreachable!()
-                    };
-                    // EXPR2 をパース
-                    let r = parse_expr2(tokens)?;
-                    // 結果は加減
-                    let loc = e.loc.merge(&r.loc);
-                    Ok(Ast::binop(op, e, r, loc))
-                }
-                // それ以外はエラー。エラーの種類で処理をわける
-                Some(_) => Err(ParseError::UnexpectedToken(tokens.next().unwrap())),
-                None => Err(ParseError::Eof),
+fn parse_expr2<Tokens>(tokens: &mut Peekable<Tokens>) -> Result<Ast, ParseError>
+where
+    Tokens: Iterator<Item = Token>,
+{
+    let mut e = parser_expr1(tokens)?;
+    loop {
+        match tokens.peek().map(|tok| tok.value) {
+            Some(TokenKind::Asterisk) | Some(TokenKind::Slash) => {
+                let op = match tokens.next().unwrap() {
+                    Token {
+                        value: TokenKind::Asterisk,
+                        loc,
+                    } => BinOp::mult(loc),
+                    Token {
+                        value: TokenKind::Slash,
+                        loc,
+                    } => BinOp::div(loc),
+                    _ => unreachable!(),
+                };
+                let r = parse_expr1(tokens)?;
+                let loc = e.loc.merge(&r.loc);
+                e = Ast::binop(op, e, r, loc)
             }
+            _ => return Ok(e),
         }
     }
 }
