@@ -1,5 +1,6 @@
 use std::cmp::Eq;
 use std::cmp::PartialEq;
+use std::io;
 
 /// 位置情報。.0から.1までの区間を現す
 /// 例えばLoc(4, 6)なら文字列の6文字目から7文字目までの区間を表す(0の始まり)
@@ -215,7 +216,32 @@ fn recognize_many(input: &[u8], mut pos: usize, mut f: impl FnMut(u8) -> bool) -
     pos
 }
 
+fn prompt(s: &str) -> io::Result<()> {
+    use std::io::{stdout, Write};
+    let stdout = stdout();
+    let mut stdout = stdout.lock();
+    stdout.write_all(s.as_bytes())?;
+    stdout.flush()
+}
+
 fn main() {
+    use std::io::{stdin, BufRead, BufReader};
+    let stdin = stdin();
+    let stdin = BufReader::new(stdin);
+    let mut lines = stdin.lines();
+
+    loop {
+        prompt("> ").unwrap();
+        // ユーザーの入力を取得する
+        if let Some(Ok(line)) = lines.next() {
+            // 字句解析を行う
+            let token = lex(&line);
+            println!("{:?}", token);
+        } else {
+            break;
+        }
+    }
+
     println!("Hello, world!");
 }
 
