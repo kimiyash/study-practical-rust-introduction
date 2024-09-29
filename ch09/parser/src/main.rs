@@ -1,7 +1,10 @@
 use std::cmp::Eq;
 use std::cmp::PartialEq;
+use std::fmt;
 use std::io;
 use std::iter::Peekable;
+use std::str::FromStr;
+use std::error::Error as StdError;
 
 /// 位置情報。.0から.1までの区間を現す
 /// 例えばLoc(4, 6)なら文字列の6文字目から7文字目までの区間を表す(0の始まり)
@@ -254,6 +257,16 @@ impl Ast {
             },
             loc,
         )
+    }
+}
+
+impl FromStr for Ast  {
+    type Err = Error;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        // 内部では字句解析、構文解析の順に実行する
+        let tokens = lex(s)?;
+        let ast = parse(tokens)?;
+        Ok(ast)
     }
 }
 
@@ -573,6 +586,106 @@ where
         })
 }
 
+/// 字句解析エラーと構文解析エラーを統合するエラー型
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+enum Error {
+    Lexer(LexError),
+    Parser(ParseError),
+}
+
+impl From<LexError> for Error {
+    fn from(e: LexError) -> Self {
+        Error::Lexer(e)
+    }
+}
+
+impl From<ParseError> for Error {
+    fn from (e: ParseError) -> Self {
+        Error::Parser(e)
+    }
+}
+
+// pub trait Error: Debug + Display {
+//     // Displayのほうが推奨される
+//     fn description(&self) -> &str { ... }
+//     // 非推奨
+//     fn cause(&self) -> Option<&dyn Error> { ... }
+//     fn source(&self) -> Option<&(dyn Error + 'static)> { ... }
+// }
+
+impl fmt::Display for TokenKind {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        use self::TokenKind::*;
+        match self {
+            Number(n) => n.fmt(f),
+            Plus => write!(f, "+"),
+            Minus => write!(f, "-"),
+            Asterisk => write!(f, "*"),
+            Slash => write!(f, "/"),
+            LParen => write!(f, "("),
+            RParen => write!(f, ")"),
+        }
+    }
+}
+
+impl fmt::Display for Loc {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}-{}", self.0, self.1)
+    }
+}
+
+impl fmt::Display for LexError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        use self::LexErrorKind::*;
+        let loc = &self.loc;
+        match self.value {
+            InvalidChar(c) => write!(f, "{}: inalid char '{}'", loc, c),
+            Eof => write!(f, "End of file.")
+        }
+    }
+}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        use self::ParseError::*;
+        match self {
+            UnexpectedToken(tok) => write!(f, "{}: {} is not expected", tok.loc, tok.value),
+            NotExpression(tok) => write!(
+                f,
+                "{}: '{}' is not a start of expression",
+                tok.loc, tok.value
+            ),
+            NotOperator(tok) => write!(f, "{}: '{}' is not an operator", tok.loc, tok.value),
+            UnclosedOpenParen(tok) => write!(f, "{}: '{}' is not closed", tok.loc, tok.value),
+            ReadundantExpression(tok) => write!(
+                f,
+                "{}: expression after '{}' is redundant",
+                tok.loc, tok.value
+            ),
+            Eof => write!(f, "End of file"),
+        }
+    }
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "parser error")
+    }
+}
+
+impl StdError for LexError {}
+impl StdError for ParseError {}
+
+impl StdError for Error {
+    fn source(&self) -> Option<&(dyn StdError + 'static)> {
+        use self::Error::*;
+        match self {
+            Lexer(lex) => Some(lex),
+            Parser(parse) => Some(parse),
+        }
+    }
+}
+
 fn main() {
     use std::io::{stdin, BufRead, BufReader};
     let stdin = stdin();
@@ -583,11 +696,22 @@ fn main() {
         prompt("> ").unwrap();
         // ユーザーの入力を取得する
         if let Some(Ok(line)) = lines.next() {
-            // 字句解析を行う
-            let tokens = lex(&line).unwrap();
-            // 字句解析をした結果をパースし
-            let ast = parse(tokens).unwrap();
-            // 出力する
+            // from_str を実装したので parser が呼べる
+            let ast = match line.parse::<Ast>() {
+                Ok(ast) => ast,
+                Err(e) => {
+                    // エラーがあった場合そのエラーと cause を全部出力する
+                    eprintln!("{}", e);
+                    let mut source = e.source();
+                    // sourceをすべて辿って表示する
+                    while let Some(e) = source {
+                        eprint!("cause by {}", e);
+                        source = e.source()
+                    }
+                    eprintln!();
+                    continue;
+                }
+            };
             println!("{:?}", ast);
         } else {
             break;
