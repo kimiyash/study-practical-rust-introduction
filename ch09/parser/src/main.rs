@@ -307,7 +307,7 @@ impl BinOp {
 
     fn div(loc: Loc) -> Self {
         Self::new(BinOpKind::Div, loc)
-    } 
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -369,7 +369,6 @@ where
     }
 
     parse_left_binop(tokens, parse_expr2, parse_expr3_op)
-
 
     // // 左側の EXPR2 を得る
     // let mut e = parse_expr2(tokens)?;
@@ -467,7 +466,6 @@ where
 
     parse_left_binop(tokens, parse_expr1, parse_expr2_op)
 
-
     // let mut e = parser_expr1(tokens)?;
     // loop {
     //     match tokens.peek().map(|tok| tok.value) {
@@ -495,10 +493,10 @@ where
 fn parse_left_binop<Tokens>(
     tokens: &mut Peekable<Tokens>,
     subexpr_parser: fn(&mut Peekable<Tokens>) -> Result<Ast, ParseError>,
-    op_parser: fn(&mut Peekable<Tokens>) -> Result<BinOp, ParseError>
+    op_parser: fn(&mut Peekable<Tokens>) -> Result<BinOp, ParseError>,
 ) -> Result<Ast, ParseError>
 where
-    Tokens: Iterator<Item = Token>
+    Tokens: Iterator<Item = Token>,
 {
     let mut e = subexpr_parser(tokens)?;
     loop {
@@ -521,7 +519,7 @@ where
 
 fn parse_expr1<Tokens>(tokens: &mut Peekable<Tokens>) -> Result<Ast, ParseError>
 where
-    Tokens: Iterator<Item = Token>
+    Tokens: Iterator<Item = Token>,
 {
     match tokens.peek().map(|tok| tok.value) {
         Some(TokenKind::Plus) | Some(TokenKind::Minus) => {
@@ -550,7 +548,7 @@ where
 // atom
 fn parse_atom<Tokens>(tokens: &mut Peekable<Tokens>) -> Result<Ast, ParseError>
 where
-    Tokens: Iterator<Item = Token>
+    Tokens: Iterator<Item = Token>,
 {
     tokens
         .next()
@@ -565,7 +563,7 @@ where
                     Some(Token {
                         value: TokenKind::RParen,
                         ..
-                    }) => Ok (e),
+                    }) => Ok(e),
                     Some(t) => Err(ParseError::ReadundantExpression(t)),
                     _ => Err(ParseError::NotExpression(tok)),
                 }
@@ -573,7 +571,6 @@ where
             _ => Err(ParseError::NotExpression(tok)),
         })
 }
-
 
 fn main() {
     use std::io::{stdin, BufRead, BufReader};
@@ -650,7 +647,7 @@ fn test_parser() {
                 Ast::num(10, Loc(13, 15)),
                 Loc(12, 15)
             ),
-            Loc(0,15)
+            Loc(0, 15)
         ))
     )
 }
