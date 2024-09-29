@@ -686,6 +686,24 @@ impl StdError for Error {
     }
 }
 
+// input に対して loc の位置情報を強調表示する
+fn print_annot(input: &str, loc: Loc) {
+    // 入力に対して
+    eprintln!("{}", input);
+    // 位置情報をわかりやすく示す
+    eprintln!("{}{}", " ".repeat(loc.0), "^".repeat(loc.1 - loc.0));
+}
+
+impl Error {
+    /// 診断メッセージを表示する
+    fn show_diagnostic(&self, input: &str) {
+        use self::Error::*;
+        use self::ParseError as P;
+        // エラー情報とその位置情報を取り出す。エラーの種類によって位置情報を調整する
+        
+    }
+}
+
 fn main() {
     use std::io::{stdin, BufRead, BufReader};
     let stdin = stdin();
