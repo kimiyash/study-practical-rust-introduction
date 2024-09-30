@@ -512,8 +512,8 @@ where
     Tokens: Iterator<Item = Token>,
 {
     let mut e = subexpr_parser(tokens)?;
-    loop {
-        match tokens.peek() {
+    while let token = tokens.peek() {
+        match token {
             Some(_) => {
                 let op = match op_parser(tokens) {
                     Ok(op) => op,
