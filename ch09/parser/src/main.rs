@@ -699,16 +699,16 @@ impl Error {
         use self::Error::*;
         use self::ParseError as P;
         // エラー情報とその位置情報を取り出す。エラーの種類によって位置情報を調整する
-        let (e,loc): (&dyn StdError, Loc) = match self {
+        let (e, loc): (&dyn StdError, Loc) = match self {
             Lexer(e) => (e, e.loc.clone()),
             Parser(e) => {
                 let loc = match e {
                     P::UnexpectedToken(Token { loc, .. })
-                    | P::NotExpression(Token { loc, ..})
-                    | P::NotOperator(Token { loc, ..})
-                    | P::UnclosedOpenParen(Token {loc, ..}) => loc.clone(),
+                    | P::NotExpression(Token { loc, .. })
+                    | P::NotOperator(Token { loc, .. })
+                    | P::UnclosedOpenParen(Token { loc, .. }) => loc.clone(),
                     // redundant expression はトークン以降行末までがあまりなので loc の終了位置を調整する
-                    P::RedundantExpression(Token {loc, ..}) => Loc(loc.0, input.len()),
+                    P::RedundantExpression(Token { loc, .. }) => Loc(loc.0, input.len()),
                     // EoF は Loc 情報をもってないのでその場でつくる
                     P::Eof => Loc(input.len(), input.len() + 1),
                 };
@@ -734,8 +734,102 @@ fn show_trace<E: StdError>(e: E) {
     // エラーの表示のあとは次の入力を受け付ける
 }
 
+/// 評価機をあらわすデータ型
+struct Interpreter;
+
+impl Interpreter {
+    pub fn new() -> Self {
+        Interpreter
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+enum InterpreterErrorKind {
+    DivsionByZero,
+}
+
+type InterpreterError = Annot<InterpreterErrorKind>;
+
+impl Interpreter {
+    pub fn eval(&mut self, expr: &Ast) -> Result<i64, InterpreterError> {
+        use self::AstKind::*;
+        match expr.value {
+            Num(n) => Ok(n as i64),
+            UniOp { ref op, ref e } => {
+                let e = self.eval(e)?;
+                Ok(self.eval_uniop(op, e))
+            }
+            BinOp {
+                ref op,
+                ref l,
+                ref r,
+            } => {
+                let l = self.eval(l)?;
+                let r = self.eval(r)?;
+                self.eval_binop(op, l, r)
+                    .map_err(|e| InterpreterError::new(e, expr.loc.clone()))
+            }
+        }
+    }
+
+    fn eval_uniop(&mut self, op: &UniOp, n: i64) -> i64 {
+        use self::UniOpKind::*;
+        match op.value {
+            Plus => n,
+            Minus => -n,
+        }
+    }
+
+    fn eval_binop(&mut self, op: &BinOp, l: i64, r: i64) -> Result<i64, InterpreterErrorKind> {
+        use self::BinOpKind::*;
+        match op.value {
+            Add => Ok(l + r),
+            Sub => Ok(l - r),
+            Mult => Ok(l * r),
+            Div => {
+                if r == 0 {
+                    Err(InterpreterErrorKind::DivsionByZero)
+                } else {
+                    Ok(l / r)
+                }
+            }
+        }
+    }
+}
+
+impl fmt::Display for InterpreterError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use self::InterpreterErrorKind::*;
+        match self.value {
+            DivsionByZero => write!(f, "division by zero"),
+        }
+    }
+}
+
+impl StdError for InterpreterError {
+    fn description(&self) -> &str {
+        use self::InterpreterErrorKind::*;
+        match self.value {
+            DivsionByZero => "the right hand expression of the division evaluates to zero"
+        }
+    }
+}
+
+impl InterpreterError {
+    fn show_diagnostic(&self, input: &str) {
+        // エラー情報を簡単に表示し
+        eprintln!("{}", self);
+        // エラー位置を表示する
+        print_annot(input, self.loc.clone());
+    }
+}
+
+
 fn main() {
     use std::io::{stdin, BufRead, BufReader};
+    // インタプリタを用意しておく
+    let mut interp = Interpreter::new();
+
     let stdin = stdin();
     let stdin = BufReader::new(stdin);
     let mut lines = stdin.lines();
@@ -753,7 +847,17 @@ fn main() {
                     continue;
                 }
             };
-            println!("{:?}", ast);
+            // インタプリタでevalする
+            let n = match interp.eval(&ast) {
+                Ok(n) => n,
+                Err(e) => {
+                    e.show_diagnostic(&line);
+                    show_trace(e);
+                    continue;
+                }
+            };
+
+            println!("{}", n);
         } else {
             break;
         }
