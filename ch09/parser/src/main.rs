@@ -1,10 +1,10 @@
 use std::cmp::Eq;
 use std::cmp::PartialEq;
+use std::error::Error as StdError;
 use std::fmt;
 use std::io;
 use std::iter::Peekable;
 use std::str::FromStr;
-use std::error::Error as StdError;
 
 /// 位置情報。.0から.1までの区間を現す
 /// 例えばLoc(4, 6)なら文字列の6文字目から7文字目までの区間を表す(0の始まり)
@@ -188,7 +188,6 @@ fn lex_rparen(input: &[u8], start: usize) -> Result<(Token, usize), LexError> {
     consume_byte(input, start, b')').map(|(_, end)| (Token::rparen(Loc(start, end)), end))
 }
 
-
 fn lex_number(input: &[u8], pos: usize) -> Result<(Token, usize), LexError> {
     use std::str::from_utf8;
 
@@ -260,7 +259,7 @@ impl Ast {
     }
 }
 
-impl FromStr for Ast  {
+impl FromStr for Ast {
     type Err = Error;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         // 内部では字句解析、構文解析の順に実行する
@@ -335,7 +334,7 @@ enum ParseError {
     /// カッコが閉じられていない
     UnclosedOpenParen(Token),
     /// 式の解析が終わったのにまだトークンが残っている
-    ReadundantExpression(Token),
+    RedundantExpression(Token),
     /// パース途中で入力が終わった
     Eof,
 }
@@ -346,7 +345,7 @@ fn parse(tokens: Vec<Token>) -> Result<Ast, ParseError> {
     // その後の parse_expr を呼んでエラーを処理する
     let ret = parse_expr(&mut tokens)?;
     match tokens.next() {
-        Some(tok) => Err(ParseError::ReadundantExpression(tok)),
+        Some(tok) => Err(ParseError::RedundantExpression(tok)),
         None => Ok(ret),
     }
 }
@@ -578,7 +577,7 @@ where
                         value: TokenKind::RParen,
                         ..
                     }) => Ok(e),
-                    Some(t) => Err(ParseError::ReadundantExpression(t)),
+                    Some(t) => Err(ParseError::RedundantExpression(t)),
                     _ => Err(ParseError::NotExpression(tok)),
                 }
             }
@@ -600,7 +599,7 @@ impl From<LexError> for Error {
 }
 
 impl From<ParseError> for Error {
-    fn from (e: ParseError) -> Self {
+    fn from(e: ParseError) -> Self {
         Error::Parser(e)
     }
 }
@@ -640,7 +639,7 @@ impl fmt::Display for LexError {
         let loc = &self.loc;
         match self.value {
             InvalidChar(c) => write!(f, "{}: inalid char '{}'", loc, c),
-            Eof => write!(f, "End of file.")
+            Eof => write!(f, "End of file."),
         }
     }
 }
@@ -657,7 +656,7 @@ impl fmt::Display for ParseError {
             ),
             NotOperator(tok) => write!(f, "{}: '{}' is not an operator", tok.loc, tok.value),
             UnclosedOpenParen(tok) => write!(f, "{}: '{}' is not closed", tok.loc, tok.value),
-            ReadundantExpression(tok) => write!(
+            RedundantExpression(tok) => write!(
                 f,
                 "{}: expression after '{}' is redundant",
                 tok.loc, tok.value
@@ -700,8 +699,39 @@ impl Error {
         use self::Error::*;
         use self::ParseError as P;
         // エラー情報とその位置情報を取り出す。エラーの種類によって位置情報を調整する
-        
+        let (e,loc): (&dyn StdError, Loc) = match self {
+            Lexer(e) => (e, e.loc.clone()),
+            Parser(e) => {
+                let loc = match e {
+                    P::UnexpectedToken(Token { loc, .. })
+                    | P::NotExpression(Token { loc, ..})
+                    | P::NotOperator(Token { loc, ..})
+                    | P::UnclosedOpenParen(Token {loc, ..}) => loc.clone(),
+                    // redundant expression はトークン以降行末までがあまりなので loc の終了位置を調整する
+                    P::RedundantExpression(Token {loc, ..}) => Loc(loc.0, input.len()),
+                    // EoF は Loc 情報をもってないのでその場でつくる
+                    P::Eof => Loc(input.len(), input.len() + 1),
+                };
+                (e, loc)
+            }
+        };
+        // エラー情報を簡単に表示し
+        eprintln!("{}", e);
+        // エラー位置を指示する
+        print_annot(input, loc);
     }
+}
+
+fn show_trace<E: StdError>(e: E) {
+    // エラーがあった場合そのエラーと source を全部出力する
+    eprint!("{}", e);
+    let mut source = e.source();
+    // source をすべて辿って表示する
+    while let Some(e) = source {
+        eprintln!(" cause by {}", e);
+        source = e.source()
+    }
+    // エラーの表示のあとは次の入力を受け付ける
 }
 
 fn main() {
@@ -718,15 +748,8 @@ fn main() {
             let ast = match line.parse::<Ast>() {
                 Ok(ast) => ast,
                 Err(e) => {
-                    // エラーがあった場合そのエラーと cause を全部出力する
-                    eprintln!("{}", e);
-                    let mut source = e.source();
-                    // sourceをすべて辿って表示する
-                    while let Some(e) = source {
-                        eprint!("cause by {}", e);
-                        source = e.source()
-                    }
-                    eprintln!();
+                    e.show_diagnostic(&line);
+                    show_trace(e);
                     continue;
                 }
             };
