@@ -8,6 +8,7 @@ readme = "README.md"
 repository = "https://gitubu.com/kimiyash/wordcount"
 categories = ["command-line-utilities"]
 keewords = ["example", "frequency", "test"]
+exclude = ["test.txt", "test/*"]
 
 [badges]
 appveyor = { repository = "kimiyash/wordcount" }
