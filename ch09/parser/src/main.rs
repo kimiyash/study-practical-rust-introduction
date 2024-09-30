@@ -724,8 +724,11 @@ impl Error {
 
 fn show_trace<E: StdError>(e: E) {
     // エラーがあった場合そのエラーと source を全部出力する
-    eprint!("{}", e);
     let mut source = e.source();
+    match source {
+        Some(_) => eprint!("{}", e),
+        None => eprintln!("{}", e),
+    }
     // source をすべて辿って表示する
     while let Some(e) = source {
         eprintln!(" cause by {}", e);
