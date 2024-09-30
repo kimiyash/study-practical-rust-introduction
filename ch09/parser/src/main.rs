@@ -813,7 +813,7 @@ impl StdError for InterpreterError {
     fn description(&self) -> &str {
         use self::InterpreterErrorKind::*;
         match self.value {
-            DivsionByZero => "the right hand expression of the division evaluates to zero"
+            DivsionByZero => "the right hand expression of the division evaluates to zero",
         }
     }
 }
@@ -826,7 +826,6 @@ impl InterpreterError {
         print_annot(input, self.loc.clone());
     }
 }
-
 
 fn main() {
     use std::io::{stdin, BufRead, BufReader};
