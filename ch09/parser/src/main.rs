@@ -827,10 +827,97 @@ impl InterpreterError {
     }
 }
 
+/// 逆ポーランド記法へのコンパイラを表すデータ型
+struct RpnCompiler;
+
+impl RpnCompiler {
+    pub fn new() -> Self {
+        RpnCompiler
+    }
+
+    pub fn compile(&mut self, expr: &Ast) -> String {
+        let mut buf = String::new();
+        self.compile_inner(expr, &mut buf);
+        buf
+    }
+
+    pub fn compile_inner(&mut self, expr: &Ast, buf: &mut String) {
+        use self::AstKind::*;
+        match expr.value {
+            Num(n) => buf.push_str(&n.to_string()),
+            UniOp { ref op, ref e } => {
+                self.compile_uniop(op, buf);
+                self.compile_inner(e, buf)
+            }
+            BinOp {
+                ref op,
+                ref l,
+                ref r,
+            } => {
+                self.compile_inner(l, buf);
+                buf.push_str(" ");
+                self.compile_inner(r, buf);
+                buf.push_str(" ");
+                self.compile_binop(op, buf)
+            }
+        }
+    }
+
+    fn compile_uniop(&mut self, op: &UniOp, buf: &mut String) {
+        use crate::UniOpKind::*;
+        match op.value {
+            Plus => buf.push_str("+"),
+            Minus => buf.push_str("-"),
+        }
+    }
+
+    fn compile_binop(&mut self, op: &BinOp, buf: &mut String) {
+        use self::BinOpKind::*;
+        match op.value {
+            Add => buf.push_str("+"),
+            Sub => buf.push_str("-"),
+            Mult => buf.push_str("*"),
+            Div => buf.push_str("/"),
+        }
+    }
+}
+
+fn rpn(exp: &str) -> f64 {
+    let mut stack = Vec::new();
+    for token in exp.split_whitespace() {
+        if let Ok(num) = token.parse::<f64>() {
+            stack.push(num);
+        } else {
+            match token {
+                "+" => apply2(&mut stack, |x, y| x + y),
+                "-" => apply2(&mut stack, |x, y| x - y),
+                "*" => apply2(&mut stack, |x, y| x * y),
+                "/" => apply2(&mut stack, |x, y| x / y),
+                _ => panic!("Unknow operator: {}", token),
+            }
+        }
+    }
+    stack.pop().expect("Stack underflow")
+}
+
+fn apply2<F>(stack: &mut Vec<f64>, fun: F)
+where
+    F: Fn(f64, f64) -> f64,
+{
+
+    if let (Some(y), Some(x)) = (stack.pop(), stack.pop()) {
+        let z = fun(x, y);
+        stack.push(z);
+    } else {
+        panic!("Stack underflow");
+    }
+}
+
 fn main() {
     use std::io::{stdin, BufRead, BufReader};
     // インタプリタを用意しておく
     let mut interp = Interpreter::new();
+    let mut compiler = RpnCompiler::new();
 
     let stdin = stdin();
     let stdin = BufReader::new(stdin);
@@ -858,7 +945,13 @@ fn main() {
                     continue;
                 }
             };
+            println!("{}", n);
 
+            // コンパイラを呼ぶ
+            let rpn_ = compiler.compile(&ast);
+            println!("{}", rpn_);
+            // コンパイラの結果で計算する
+            let n = rpn(&rpn_);
             println!("{}", n);
         } else {
             break;
