@@ -578,7 +578,7 @@ where
                         ..
                     }) => Ok(e),
                     Some(t) => Err(ParseError::RedundantExpression(t)),
-                    _ => Err(ParseError::NotExpression(tok)),
+                    _ => Err(ParseError::UnclosedOpenParen(tok)),
                 }
             }
             _ => Err(ParseError::NotExpression(tok)),
