@@ -1,5 +1,5 @@
+use bicycle_book_wordcount::{count, CountOption};
 use std::io::Cursor;
-use wordcount::{count, CountOption};
 
 #[macro_use]
 mod utils;
@@ -27,7 +27,7 @@ fn char_count_utf8() {
 宇宙洪荒
 日月盈昃
 辰宿列張
-"#
+"#,
     );
 
     let freq = count(input, CountOption::Char);

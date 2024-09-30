@@ -33,19 +33,19 @@ impl Default for CountOption {
 ///
 /// # Example
 /// 入力中の単語の出現頻度を数える例
-/// 
+///
 /// ```
 /// use std::io::Cursor;
-/// use wordcount::{count, CountOption};
-/// 
+/// use bicycle_book_wordcount::{count, CountOption};
+///
 /// let mut input = Cursor::new("aa bb cc bb");
 /// let freq = count(input, CountOption::Word);
-/// 
+///
 /// assert_eq!(freq["aa"], 1);
 /// assert_eq!(freq["bb"], 2);
 /// assert_eq!(freq["cc"], 1);
 /// ```
-/// 
+///
 /// # Panics
 ///
 /// 入力が UTF-8 でフォーマットされてない場合にパニックする

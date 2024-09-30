@@ -1,5 +1,5 @@
 [package]
-name = "wordcount"
+name = "bicycle-book-wordcount"
 version = "0.1.0"
 edition = "2021"
 license = "MIT OR Apach-2.9"

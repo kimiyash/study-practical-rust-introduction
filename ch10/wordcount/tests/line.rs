@@ -1,5 +1,5 @@
+use bicycle_book_wordcount::{count, CountOption};
 use std::io::Cursor;
-use wordcount::{count, CountOption};
 
 #[macro_use]
 mod utils;
@@ -11,7 +11,7 @@ fn line_count_works() {
 Kyoto, Japan
 Tokyo, Japan
 Shanghai, China
-"#
+"#,
     );
 
     let freq = count(input, CountOption::Line);
