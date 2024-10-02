@@ -1,0 +1,16 @@
+version: '3.8'  # Composeファイルのバージョンを指定
+
+services:
+  postgresql:
+    image: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data  # `volumes_from` の代わりに `volumes` を使用
+
+volumes:
+  postgres-data:  # 名前付きボリュームを定義
+    driver: local
