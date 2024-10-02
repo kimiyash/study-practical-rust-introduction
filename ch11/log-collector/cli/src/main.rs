@@ -1,10 +1,8 @@
 use clap::arg_enum;
 use clap::{App, AppSettings, Arg, SubCommand};
 use futures_util::StreamExt;
-use futures_util::TryStreamExt;
 use reqwest::Client;
 use std::io;
-use tokio::io::{AsyncWrite, AsyncWriteExt};
 
 struct ApiClient {
     server: String,
@@ -14,7 +12,7 @@ struct ApiClient {
 impl ApiClient {
     async fn post_logs(&self, req: &api::logs::post::Request) -> reqwest::Result<()> {
         self.client
-            .post(&format!("http://{}/logs", &self.server))
+            .post(format!("http://{}/logs", &self.server))
             .json(req)
             .send()
             .await
@@ -23,7 +21,7 @@ impl ApiClient {
 
     async fn get_logs(&self) -> reqwest::Result<api::logs::get::Response> {
         self.client
-            .get(&format!("http://{}/logs", &self.server))
+            .get(format!("http://{}/logs", &self.server))
             .send()
             .await?
             .json()
@@ -39,9 +37,9 @@ impl ApiClient {
     // }
 
     async fn get_csv<W: io::Write>(&self, w: &mut W) -> Result<u64, io::Error> {
-        let mut response = self
+        let response = self
             .client
-            .get(&format!("http://{}/csv", &self.server))
+            .get(format!("http://{}/csv", &self.server))
             .send()
             .await
             .map_err(|e| io::Error::new(io::ErrorKind::Other, format!("Reqwest error: {}", e)))?; // reqwest エラーを io::Error に変換
