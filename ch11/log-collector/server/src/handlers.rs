@@ -1,14 +1,13 @@
 use crate::db;
 use crate::Server;
+use actix_multipart::Multipart;
 use actix_web::{web, HttpResponse, Responder};
 use diesel::pg::PgConnection;
+use futures::{StreamExt, TryStreamExt};
 use itertools::Itertools;
 use log::debug;
 use std::io::{BufReader, Read};
 use std::sync::Arc;
-use actix_multipart::Multipart;
-use futures::{StreamExt, TryStreamExt};
-
 
 fn load_file(
     conn: &mut PgConnection,

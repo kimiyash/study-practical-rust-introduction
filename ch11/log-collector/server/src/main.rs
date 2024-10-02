@@ -1,4 +1,4 @@
-use actix_web::{web, App, HttpServer, web::Data}; // Dataを正しくインポート
+use actix_web::{web, web::Data, App, HttpServer}; // Dataを正しくインポート
 use diesel::pg::PgConnection;
 use diesel::r2d2::{ConnectionManager, Pool};
 use dotenv::dotenv;
@@ -41,7 +41,7 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(move || {
         App::new()
-            .app_data(web::Data::new(server.clone()))  // 状態を共有するためにapp_dataを使用
+            .app_data(web::Data::new(server.clone())) // 状態を共有するためにapp_dataを使用
             .route("/logs", web::post().to(handle_post_logs))
             .route("/csv", web::post().to(handle_post_csv))
             .route("/csv", web::get().to(handle_get_csv))
