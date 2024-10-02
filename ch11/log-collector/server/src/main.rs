@@ -30,6 +30,12 @@ impl Server {
     }
 }
 
+impl Default for Server {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     use crate::handlers::*;
@@ -37,7 +43,7 @@ async fn main() -> std::io::Result<()> {
     // 環境変数でログレベルを設定
     env_logger::init();
 
-    let server = Server::new();
+    let server = Server::default();
 
     HttpServer::new(move || {
         App::new()
