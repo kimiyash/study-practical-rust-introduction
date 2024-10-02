@@ -93,7 +93,7 @@ pub async fn handle_post_logs(
 
     HttpResponse::Accepted().finish()
 }
-
+    
 /// `GET /logs`のハンドラ
 pub async fn handle_get_logs(
     server: web::Data<Server>,

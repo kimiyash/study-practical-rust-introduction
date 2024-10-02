@@ -1,8 +1,10 @@
-use clap::{Arg, App, AppSettings, SubCommand};
-use clap::{_clap_count_exprs, arg_enum};
+use clap::arg_enum;
+use clap::{App, AppSettings, Arg, SubCommand};
+use futures_util::StreamExt;
+use futures_util::TryStreamExt;
 use reqwest::Client;
 use std::io;
-use futures::executor::block_on;
+use tokio::io::{AsyncWrite, AsyncWriteExt};
 
 struct ApiClient {
     server: String,
@@ -27,6 +29,34 @@ impl ApiClient {
             .json()
             .await
     }
+
+    // async fn get_csv<W: io::Write>(&self, w: &mut W) -> reqwest::Result<u64> {
+    //     self.client
+    //         .get(&format!("http://{}/csv", &self.server))
+    //         .send()
+    //         .await?
+    //         .copy_to(w)
+    // }
+
+    async fn get_csv<W: io::Write>(&self, w: &mut W) -> Result<u64, io::Error> {
+        let mut response = self
+            .client
+            .get(&format!("http://{}/csv", &self.server))
+            .send()
+            .await
+            .map_err(|e| io::Error::new(io::ErrorKind::Other, format!("Reqwest error: {}", e)))?; // reqwest エラーを io::Error に変換
+
+        let mut total_bytes_written = 0;
+
+        let mut stream = response.bytes_stream();
+        while let Some(chunk) = stream.next().await {
+            let chunk = chunk.map_err(|e| io::Error::new(io::ErrorKind::Other, format!("Stream error: {}", e)))?; // ストリームエラーを io::Error に変換
+            w.write_all(&chunk)?; // 書き込みエラーをそのまま伝播
+            total_bytes_written += chunk.len() as u64;
+        }
+
+        Ok(total_bytes_written) // 書き込んだバイト数を返す
+    }
 }
 
 arg_enum! {
@@ -47,7 +77,10 @@ async fn do_post_csv(api_client: &ApiClient) {
                 continue;
             }
         };
-        api_client.post_logs(&log).await.expect("api request failed");
+        api_client
+            .post_logs(&log)
+            .await
+            .expect("api request failed");
     }
 }
 
@@ -57,7 +90,17 @@ async fn do_get_json(api_client: &ApiClient) {
     println!("{}", json_str);
 }
 
-fn main() {
+async fn do_get_csv(api_client: &ApiClient) {
+    let out = io::stdout();
+    let mut out = out.lock();
+    api_client
+        .get_csv(&mut out)
+        .await
+        .expect("api request failed");
+}
+
+#[tokio::main]
+async fn main() {
     let opts = App::new(env!("CARGO_PKG_NAME"))
         .about(env!("CARGO_PKG_DESCRIPTION"))
         .version(env!("CARGO_PKG_VERSION"))
@@ -69,12 +112,12 @@ fn main() {
                 .long("server")
                 .value_name("URL")
                 .help("server url")
-                .takes_value(true,)
+                .takes_value(true),
         )
         .subcommand(SubCommand::with_name("post").about("post logs, taking input from stdin"))
         .subcommand(
-                SubCommand::with_name("get").about("get logs").arg(
-                    Arg::with_name("FORMAT")
+            SubCommand::with_name("get").about("get logs").arg(
+                Arg::with_name("FORMAT")
                     .help("log format")
                     .short("f")
                     .long("format")
@@ -82,36 +125,36 @@ fn main() {
                     // csv json のみ受け付ける
                     .possible_values(&Format::variants())
                     .case_insensitive(true),
-                ),
+            ),
         );
 
-        let matches = opts.get_matches();
+    let matches = opts.get_matches();
 
-        let server = matches
-            .value_of("SERVER")
-            .unwrap_or("localhost:3000")
-            .into();
-        let client = Client::new();
-        let api_client = ApiClient { server, client };
+    let server = matches
+        .value_of("SERVER")
+        .unwrap_or("localhost:3000")
+        .into();
+    let client = Client::new();
+    let api_client = ApiClient { server, client };
 
-        match matches.subcommand() {
-            ("get", sub_match) => println!("get: {:?}", sub_match),
-            ("post", sub_match) => println!("post: {:?}", sub_match),
-            _ => unreachable!(),
+    match matches.subcommand() {
+        ("get", sub_match) => println!("get: {:?}", sub_match),
+        ("post", sub_match) => println!("post: {:?}", sub_match),
+        _ => unreachable!(),
+    }
+
+    match matches.subcommand() {
+        ("get", sub_match) => {
+            let format = sub_match
+                .and_then(|m| m.value_of("FORMAT"))
+                .map(|m| m.parse().unwrap())
+                .unwrap();
+            match format {
+                Format::Csv => do_get_csv(&api_client).await,
+                Format::Json => do_get_json(&api_client).await,
+            }
         }
-
-        match matches.subcommand() {
-            ("get", sub_match) => {
-                let format = sub_match
-                    .and_then(|m| m.value_of("FORMAT"))
-                    .map(|m| m.parse().unwrap())
-                    .unwrap();
-                match format {
-                    Format::Csv => unimplemented!(),
-                    Format::Json => block_on(do_get_json(&api_client)),
-                }
-            },
-            ("post", _) => block_on(do_post_csv(&api_client)),
-            _ => unreachable!(),
-        }
+        ("post", _) => do_post_csv(&api_client).await,
+        _ => unreachable!(),
+    }
 }
