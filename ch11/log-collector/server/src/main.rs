@@ -21,11 +21,11 @@ pub struct Server {
 impl Server {
     pub fn new() -> Self {
         dotenv().ok();
-        let database_url = env::var("DATABASE_URL").expect("DATABASE_URLが設定されていません");
+        let database_url = env::var("DATABASE_URL").expect("DATABASE_URL is not set");
         let manager = ConnectionManager::<PgConnection>::new(database_url);
         let pool = Pool::builder()
             .build(manager)
-            .expect("プールの作成に失敗しました");
+            .expect("Failed to create pool.");
         Server { pool }
     }
 }
