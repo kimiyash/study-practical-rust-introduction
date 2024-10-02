@@ -1,5 +1,33 @@
 use clap::{Arg, App, AppSettings, SubCommand};
 use clap::{_clap_count_exprs, arg_enum};
+use reqwest::Client;
+use std::io;
+use futures::executor::block_on;
+
+struct ApiClient {
+    server: String,
+    client: Client,
+}
+
+impl ApiClient {
+    async fn post_logs(&self, req: &api::logs::post::Request) -> reqwest::Result<()> {
+        self.client
+            .post(&format!("http://{}/logs", &self.server))
+            .json(req)
+            .send()
+            .await
+            .map(|_| ())
+    }
+
+    async fn get_logs(&self) -> reqwest::Result<api::logs::get::Response> {
+        self.client
+            .get(&format!("http://{}/logs", &self.server))
+            .send()
+            .await?
+            .json()
+            .await
+    }
+}
 
 arg_enum! {
     #[derive(Debug)]
@@ -7,6 +35,26 @@ arg_enum! {
         Csv,
         Json,
     }
+}
+
+async fn do_post_csv(api_client: &ApiClient) {
+    let reader = csv::Reader::from_reader(io::stdin());
+    for log in reader.into_deserialize::<api::logs::post::Request>() {
+        let log = match log {
+            Ok(log) => log,
+            Err(e) => {
+                eprintln!("[WARN failed to parse a line, skipping: {}", e);
+                continue;
+            }
+        };
+        api_client.post_logs(&log).await.expect("api request failed");
+    }
+}
+
+async fn do_get_json(api_client: &ApiClient) {
+    let res = api_client.get_logs().await.expect("api request failed");
+    let json_str = serde_json::to_string(&res).unwrap();
+    println!("{}", json_str);
 }
 
 fn main() {
@@ -39,7 +87,13 @@ fn main() {
 
         let matches = opts.get_matches();
 
-        let server = matches.value_of("SERVER").unwrap_or("localhost:3000");
+        let server = matches
+            .value_of("SERVER")
+            .unwrap_or("localhost:3000")
+            .into();
+        let client = Client::new();
+        let api_client = ApiClient { server, client };
+
         match matches.subcommand() {
             ("get", sub_match) => println!("get: {:?}", sub_match),
             ("post", sub_match) => println!("post: {:?}", sub_match),
@@ -54,8 +108,10 @@ fn main() {
                     .unwrap();
                 match format {
                     Format::Csv => unimplemented!(),
-                    Format::Json => unimplemented!(),
+                    Format::Json => block_on(do_get_json(&api_client)),
                 }
             },
+            ("post", _) => block_on(do_post_csv(&api_client)),
+            _ => unreachable!(),
         }
 }
