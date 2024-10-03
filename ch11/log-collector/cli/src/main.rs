@@ -36,21 +36,18 @@ impl ApiClient {
     //         .copy_to(w)
     // }
 
-    async fn get_csv<W: io::Write>(&self, w: &mut W) -> Result<u64, io::Error> {
+    async fn get_csv<W: io::Write>(&self, w: &mut W) -> Result<u64, Box<dyn std::error::Error>> {
         let response = self
             .client
             .get(format!("http://{}/csv", &self.server))
             .send()
-            .await
-            .map_err(|e| io::Error::new(io::ErrorKind::Other, format!("Reqwest error: {}", e)))?; // reqwest エラーを io::Error に変換
+            .await?;
 
         let mut total_bytes_written = 0;
 
         let mut stream = response.bytes_stream();
         while let Some(chunk) = stream.next().await {
-            let chunk = chunk.map_err(|e| {
-                io::Error::new(io::ErrorKind::Other, format!("Stream error: {}", e))
-            })?; // ストリームエラーを io::Error に変換
+            let chunk = chunk?;
             w.write_all(&chunk)?; // 書き込みエラーをそのまま伝播
             total_bytes_written += chunk.len() as u64;
         }
