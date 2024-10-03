@@ -48,11 +48,11 @@ impl ApiClient {
         let mut stream = response.bytes_stream();
         while let Some(chunk) = stream.next().await {
             let chunk = chunk?;
-            w.write_all(&chunk)?; // 書き込みエラーをそのまま伝播
+            w.write_all(&chunk)?;
             total_bytes_written += chunk.len() as u64;
         }
 
-        Ok(total_bytes_written) // 書き込んだバイト数を返す
+        Ok(total_bytes_written)
     }
 }
 
