@@ -48,7 +48,9 @@ impl ApiClient {
 
         let mut stream = response.bytes_stream();
         while let Some(chunk) = stream.next().await {
-            let chunk = chunk.map_err(|e| io::Error::new(io::ErrorKind::Other, format!("Stream error: {}", e)))?; // ストリームエラーを io::Error に変換
+            let chunk = chunk.map_err(|e| {
+                io::Error::new(io::ErrorKind::Other, format!("Stream error: {}", e))
+            })?; // ストリームエラーを io::Error に変換
             w.write_all(&chunk)?; // 書き込みエラーをそのまま伝播
             total_bytes_written += chunk.len() as u64;
         }
