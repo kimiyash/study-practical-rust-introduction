@@ -1,6 +1,6 @@
 use onigmo_sys::*;
 use std::mem::MaybeUninit;
-use std::str::{from_boxed_utf8_unchecked, from_utf8_unchecked};
+use std::str::from_utf8_unchecked;
 
 fn main() {
     unsafe {
@@ -17,7 +17,7 @@ fn main() {
             // パターン文字の戦闘
             pattern as *const OnigUChar,
             // パターン文字の末尾
-            (pattern as *const OnigUChar).offset(pattern.len() as isize),
+            (pattern as *const OnigUChar).add(pattern.len()),
             // 今回オプションはつけない
             ONIG_OPTION_NONE,
             // Rust の文字列は UTF-8 エンコーディング
@@ -40,7 +40,7 @@ fn main() {
         let region = onig_region_new();
 
         // マッチ対象文字列の終端
-        let end = (s as *const OnigUChar).offset((s.len() as isize));
+        let end = (s as *const OnigUChar).add(s.len());
         // マッチ開始位置
         let start = s as *const _;
         // マッチ終了位置
@@ -82,7 +82,7 @@ fn main() {
             std::process::exit(-1);
         }
         // 使ったリソースを手動で解放する
-        onig_region_free(region, 1);;
+        onig_region_free(region, 1);
         onig_free_body(req.as_mut_ptr());
         onig_end();
         std::process::exit(r as i32);
