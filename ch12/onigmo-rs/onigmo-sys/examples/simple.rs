@@ -58,15 +58,15 @@ fn main() {
         if 0 <= r {
             // 戻り値が 0以上ならマッチ成功
             println!("match as {}", r);
-            let regioon = region.as_ref().unwrap();
+            let region = region.as_ref().unwrap();
             // グルーピングされた部分正規表現ごとにマッチ位置を表示する
 
-            for i in 0..((*region).num_regs) {
+            for i in 0..(region.num_regs) {
                 println!(
                     "{}: ({:?}-{:?})",
                     i,
-                    (*region).beg.offset(i as isize),
-                    (*region).end.offset(i as isize)
+                    region.beg.offset(i as isize),
+                    region.end.offset(i as isize)
                 );
             }
             r = 0;

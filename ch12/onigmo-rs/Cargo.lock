@@ -238,6 +238,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "onigmo"
+version = "0.1.0"
+
+[[package]]
 name = "onigmo-sys"
 version = "0.1.0"
 dependencies = [

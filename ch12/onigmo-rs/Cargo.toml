@@ -1,2 +1,2 @@
 [workspace]
-members = ["onigmo-sys"]
+members = [ "onigmo", "onigmo-sys"]
