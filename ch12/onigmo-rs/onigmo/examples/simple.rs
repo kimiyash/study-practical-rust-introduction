@@ -8,7 +8,7 @@ fn main() {
             for (beg, end) in ret.position() {
                 println!("{}", &s[beg..end]);
             }
-        },
+        }
         None => println!("not match"),
     }
 }

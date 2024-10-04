@@ -172,7 +172,7 @@ impl<'a> Iterator for PositionIter<'a> {
                 (
                     *region.beg.offset(i as isize) as usize,
                     *region.end.offset(i as isize) as usize,
-                ) 
+                )
             })
         }
     }
