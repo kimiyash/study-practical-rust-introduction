@@ -33,7 +33,7 @@ impl Error {
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "ERROR: {}\n", self.2)
+        writeln!(f, "ERROR: {}", self.2)
     }
 }
 
@@ -122,9 +122,9 @@ impl Region {
         self.0.as_ptr()
     }
 
-    fn as_ptr(&self) -> *const OnigRegion {
-        self.0.as_ptr()
-    }
+    // fn as_ptr(&self) -> *const OnigRegion {
+    //     self.0.as_ptr()
+    // }
 }
 
 impl Drop for Region {
