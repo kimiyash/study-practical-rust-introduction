@@ -9,7 +9,7 @@ enum Either<A, B> {
 impl<A, B> fmt::Display for Either<A, B>
 where
     A: fmt::Display,
-    B: fmt::Display
+    B: fmt::Display,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {

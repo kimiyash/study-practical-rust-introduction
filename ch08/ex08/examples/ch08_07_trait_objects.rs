@@ -1,5 +1,5 @@
-use std::string::ToString;
 use std::fmt::Display;
+use std::string::ToString;
 
 fn stringfy(t: Box<dyn ToString>) -> String {
     t.to_string()

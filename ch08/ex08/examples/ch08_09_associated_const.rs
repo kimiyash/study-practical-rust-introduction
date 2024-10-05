@@ -177,5 +177,4 @@ fn main() {
 
     let dim = CartesianCoord::DIMENSION;
     const DIM: u32 = CartesianCoord::DIMENSION;
-    
 }

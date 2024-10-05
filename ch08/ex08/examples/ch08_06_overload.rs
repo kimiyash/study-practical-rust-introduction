@@ -8,7 +8,7 @@ impl Overload<i32> for i32 {
     }
 }
 
-impl Overload <char> for i32 {
+impl Overload<char> for i32 {
     fn call(&self, _: char) -> &'static str {
         "(i32, char)"
     }

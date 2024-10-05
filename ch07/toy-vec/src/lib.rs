@@ -169,7 +169,7 @@ impl<'vec, T: Default> IntoIterator for &'vec ToyVec<T> {
 }
 
 pub struct IterMut<'vec, T> {
-    elements: &'vec mut Box<[T]>,  // ミュータブルな参照
+    elements: &'vec mut Box<[T]>, // ミュータブルな参照
     len: usize,
     pos: usize,
 }
@@ -209,7 +209,7 @@ impl<'vec, T: Default> IntoIterator for &'vec mut ToyVec<T> {
 }
 
 pub struct IntoIter<T> {
-    elements: Box<[T]>,  // ミュータブルな参照
+    elements: Box<[T]>, // ミュータブルな参照
     len: usize,
     pos: usize,
 }

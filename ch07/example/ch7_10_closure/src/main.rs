@@ -1,12 +1,21 @@
-fn apply_fn<F>(f: &F, ch: char) where F: Fn(char) -> bool {
+fn apply_fn<F>(f: &F, ch: char)
+where
+    F: Fn(char) -> bool,
+{
     assert!(f(ch));
 }
 
-fn apply_fn_mut<F>(f: &mut F, ch: char) where F: FnMut(char) -> bool {
+fn apply_fn_mut<F>(f: &mut F, ch: char)
+where
+    F: FnMut(char) -> bool,
+{
     assert!(f(ch));
 }
 
-fn apply_fn_once<F>(f: F, ch: char) where F: FnOnce(char) -> bool {
+fn apply_fn_once<F>(f: F, ch: char)
+where
+    F: FnOnce(char) -> bool,
+{
     assert!(f(ch));
 }
 

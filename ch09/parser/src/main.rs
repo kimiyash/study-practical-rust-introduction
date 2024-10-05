@@ -904,7 +904,6 @@ fn apply2<F>(stack: &mut Vec<f64>, fun: F)
 where
     F: Fn(f64, f64) -> f64,
 {
-
     if let (Some(y), Some(x)) = (stack.pop(), stack.pop()) {
         let z = fun(x, y);
         stack.push(z);

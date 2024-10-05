@@ -1,6 +1,6 @@
+use std::fmt;
 use std::iter::Filter;
 use std::ops::Range;
-use std::fmt;
 
 fn to_n(n: i32) -> impl Iterator {
     0..n
