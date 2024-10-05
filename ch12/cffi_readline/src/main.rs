@@ -1,12 +1,12 @@
-use std::ffi::CString;
 use std::ffi::CStr;
+use std::ffi::CString;
 use std::os::raw::c_schar;
 
 // readline ライブラリとリンクする
 #[link(name = "readline")]
 extern "C" {
     // C の符号付き char 型を c_schar で表現している
-    fn  readline(prompt: *const c_schar) -> *mut c_schar;
+    fn readline(prompt: *const c_schar) -> *mut c_schar;
 }
 
 fn main() {

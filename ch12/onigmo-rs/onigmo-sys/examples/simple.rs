@@ -86,6 +86,5 @@ fn main() {
         onig_free_body(req.as_mut_ptr());
         onig_end();
         std::process::exit(r as i32);
-
     }
 }

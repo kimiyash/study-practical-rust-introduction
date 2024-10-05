@@ -20,7 +20,7 @@ fn main() {
 
     let z = Box::new(4);
     // Boxを参照としてポインタも作れる
-    let zptr: *const i32  = &*z;
+    let zptr: *const i32 = &*z;
 
     let s: &[u8] = b"abc";
     // スライス(文字列)からポインタが作れる

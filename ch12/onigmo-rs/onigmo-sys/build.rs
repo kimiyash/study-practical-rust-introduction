@@ -7,7 +7,7 @@ fn main() {
 
     // bindgen の設定
     let bindings = bindgen::Builder::default()
-        .header("wrapper.h")  // wrapper.h を指定
+        .header("wrapper.h") // wrapper.h を指定
         .generate()
         .expect("Unable to generate bindings");
 
